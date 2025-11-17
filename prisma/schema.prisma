@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id
+  username       String
+  discriminator  String?
+  avatar         String?
+  lastActive     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  vacationBalance UserVacationBalance?
+  timeEntries     TimeEntry[]
+  activeSessions  ActiveSession[]
+  vacationRequests VacationRequest[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+model UserVacationBalance {
+  userId           String   @id
+  totalDays        Int      @default(25)
+  usedDays         Int      @default(0)
+  pendingDays      Int      @default(0)
+  carriedOverDays  Int      @default(0)
+  lastUpdated      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_vacation_balance")
+}
+
+model TimeEntry {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  entryType  String
+  timestamp  DateTime @default(now())
+  location   String   @default("office")
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@index([timestamp])
+  @@index([entryType])
+  @@map("time_entries")
+}
+
+model ActiveSession {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  sessionType String
+  startTime   DateTime @default(now())
+  location    String   @default("office")
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sessionType])
+  @@index([userId])
+  @@map("active_sessions")
+}
+
+model VacationRequest {
+  id               Int      @id @default(autoincrement())
+  userId           String
+  requestedDays    Int
+  startDate        DateTime
+  endDate          DateTime
+  reason           String?
+  status           String   @default("pending")
+  pmApprovedBy     String?
+  pmApprovedAt     DateTime?
+  adminApprovedBy  String?
+  adminApprovedAt  DateTime?
+  rejectedBy       String?
+  rejectedAt       DateTime?
+  rejectionReason  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("vacation_requests")
+}
+
+model ServerSetting {
+  guildId       String   @id
+  adminRoleId   String?
+  pmRoleId      String?
+  workStartTime String   @default("09:00")
+  workEndTime   String   @default("17:00")
+  timezone      String   @default("Europe/Sarajevo")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@map("server_settings")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    String?
+  action    String
+  details   String?
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, timestamp])
+  @@index([timestamp])
+  @@index([action])
+  @@map("audit_log")
+}
