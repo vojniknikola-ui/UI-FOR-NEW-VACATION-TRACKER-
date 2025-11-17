@@ -28,12 +28,12 @@ model User {
 }
 
 model UserVacationBalance {
-  userId           String   @id
-  totalDays        Int      @default(25)
-  usedDays         Int      @default(0)
-  pendingDays      Int      @default(0)
-  carriedOverDays  Int      @default(0)
-  lastUpdated      DateTime @default(now())
+  userId           String   @id @map("user_id")
+  totalDays        Int      @default(25) @map("total_days")
+  usedDays         Int      @default(0) @map("used_days")
+  pendingDays      Int      @default(0) @map("pending_days")
+  carriedOverDays  Int      @default(0) @map("carried_over_days")
+  lastUpdated      DateTime @default(now()) @map("last_updated")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -42,12 +42,12 @@ model UserVacationBalance {
 
 model TimeEntry {
   id         Int      @id @default(autoincrement())
-  userId     String
-  entryType  String
+  userId     String @map("user_id")
+  entryType  String @map("entry_type")
   timestamp  DateTime @default(now())
   location   String   @default("office")
   notes      String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -74,21 +74,21 @@ model ActiveSession {
 
 model VacationRequest {
   id               Int      @id @default(autoincrement())
-  userId           String
-  requestedDays    Int
-  startDate        DateTime
-  endDate          DateTime
+  userId           String @map("user_id")
+  requestedDays    Int @map("requested_days")
+  startDate        DateTime @map("start_date")
+  endDate          DateTime @map("end_date")
   reason           String?
   status           String   @default("pending")
-  pmApprovedBy     String?
-  pmApprovedAt     DateTime?
-  adminApprovedBy  String?
-  adminApprovedAt  DateTime?
-  rejectedBy       String?
-  rejectedAt       DateTime?
-  rejectionReason  String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @default(now())
+  pmApprovedBy     String? @map("pm_approved_by")
+  pmApprovedAt     DateTime? @map("pm_approved_at")
+  adminApprovedBy  String? @map("admin_approved_by")
+  adminApprovedAt  DateTime? @map("admin_approved_at")
+  rejectedBy       String? @map("rejected_by")
+  rejectedAt       DateTime? @map("rejected_at")
+  rejectionReason  String? @map("rejection_reason")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -123,7 +123,6 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId, timestamp])
-  @@index([timestamp])
   @@index([action])
   @@map("audit_log")
 }
